@@ -164,6 +164,10 @@ pub enum Event<'a, T: 'static> {
   /// This is irreversable - if this event is emitted, it is guaranteed to be the last event that
   /// gets emitted. You generally want to treat this as an "do on quit" event.
   LoopDestroyed,
+  
+  /// MacOS dock exit request event.
+  #[cfg(target_os = "macos")]
+  DockExitRequest,
 }
 
 impl<T: Clone> Clone for Event<'static, T> {
@@ -184,6 +188,8 @@ impl<T: Clone> Clone for Event<'static, T> {
       RedrawRequested(wid) => RedrawRequested(*wid),
       RedrawEventsCleared => RedrawEventsCleared,
       LoopDestroyed => LoopDestroyed,
+      #[cfg(target_os = "macos")]
+      DockExitRequest => DockExitRequest,
       Suspended => Suspended,
       Resumed => Resumed,
       MenuEvent {
@@ -223,6 +229,8 @@ impl<'a, T> Event<'a, T> {
       RedrawRequested(wid) => Ok(RedrawRequested(wid)),
       RedrawEventsCleared => Ok(RedrawEventsCleared),
       LoopDestroyed => Ok(LoopDestroyed),
+      #[cfg(target_os = "macos")]
+      DockExitRequest => Ok(DockExitRequest),
       Suspended => Ok(Suspended),
       Resumed => Ok(Resumed),
       MenuEvent {
@@ -264,6 +272,8 @@ impl<'a, T> Event<'a, T> {
       RedrawRequested(wid) => Some(RedrawRequested(wid)),
       RedrawEventsCleared => Some(RedrawEventsCleared),
       LoopDestroyed => Some(LoopDestroyed),
+      #[cfg(target_os = "macos")]
+      DockExitRequest => Some(DockExitRequest),
       Suspended => Some(Suspended),
       Resumed => Some(Resumed),
       MenuEvent {

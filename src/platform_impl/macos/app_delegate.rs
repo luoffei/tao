@@ -2,7 +2,9 @@
 // Copyright 2021-2023 Tauri Programme within The Commons Conservancy
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::{platform::macos::ActivationPolicy, platform_impl::platform::app_state::AppState};
+use crate::{
+  event::Event, platform::macos::ActivationPolicy, platform_impl::platform::app_state::AppState,
+};
 
 use cocoa::base::id;
 use objc::{
@@ -11,8 +13,10 @@ use objc::{
 };
 use std::{
   cell::{RefCell, RefMut},
-  os::raw::c_void,
+  os::raw::{c_int, c_void},
 };
+
+use super::event::EventWrapper;
 
 static AUX_DELEGATE_STATE_NAME: &str = "auxState";
 
@@ -46,6 +50,10 @@ lazy_static! {
     decl.add_method(
       sel!(applicationWillTerminate:),
       application_will_terminate as extern "C" fn(&Object, Sel, id),
+    );
+    decl.add_method(
+      sel!(applicationShouldTerminate:),
+      application_should_terminate as extern "C" fn(&Object, Sel, id) -> c_int,
     );
     decl.add_ivar::<*mut c_void>(AUX_DELEGATE_STATE_NAME);
 
@@ -95,4 +103,12 @@ extern "C" fn application_will_terminate(_: &Object, _: Sel, _: id) {
   trace!("Triggered `applicationWillTerminate`");
   AppState::exit();
   trace!("Completed `applicationWillTerminate`");
+}
+
+extern "C" fn application_should_terminate(_: &Object, _: Sel, _: id) -> c_int {
+  trace!("Triggered `applicationShouldTerminate`");
+  // 返回 NO，阻止应用程序退出, 同时发出一个close request事件
+  AppState::queue_event(EventWrapper::StaticEvent(Event::DockExitRequest));
+  trace!("Completed `applicationShouldTerminate`");
+  2
 }
