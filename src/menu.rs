@@ -49,6 +49,8 @@ pub struct MenuItemAttributes<'a> {
   title: &'a str,
   keyboard_accelerator: Option<Accelerator>,
   enabled: bool,
+  #[cfg(target_os = "linux")]
+  selectable: bool,
   selected: bool,
 }
 
@@ -67,6 +69,8 @@ impl<'a> MenuItemAttributes<'a> {
       title,
       keyboard_accelerator: None,
       enabled: true,
+      #[cfg(target_os = "linux")]
+      selectable: false,
       selected: false,
     }
   }
@@ -91,6 +95,13 @@ impl<'a> MenuItemAttributes<'a> {
   /// Assign default menu state.
   pub fn with_enabled(mut self, enabled: bool) -> Self {
     self.enabled = enabled;
+    self
+  }
+
+  /// Set menu with checkbox.
+  #[cfg(target_os = "linux")]
+  pub fn with_selectable(mut self, selectable: bool) -> Self {
+    self.selectable = selectable;
     self
   }
 
@@ -145,6 +156,8 @@ impl ContextMenu {
       item.title,
       item.keyboard_accelerator,
       item.enabled,
+      #[cfg(target_os = "linux")]
+      item.selectable,
       item.selected,
       MenuType::ContextMenu,
     )
@@ -193,6 +206,8 @@ impl MenuBar {
       item.title,
       item.keyboard_accelerator,
       item.enabled,
+      #[cfg(target_os = "linux")]
+      item.selectable,
       item.selected,
       MenuType::MenuBar,
     )

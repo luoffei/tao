@@ -89,6 +89,9 @@ impl MenuItemAttributes {
       .map(|label| from_gtk_mnemonic(&label))
       .unwrap_or_default()
   }
+  pub fn selectable(&self) -> bool {
+    self.gtk_item.downcast_ref::<CheckMenuItem>().is_some()
+  }
   pub fn set_enabled(&mut self, is_enabled: bool) {
     self.gtk_item.set_sensitive(is_enabled);
   }
@@ -128,13 +131,16 @@ impl Menu {
     title: &str,
     accelerators: Option<Accelerator>,
     enabled: bool,
+    selectable: bool,
     selected: bool,
     menu_type: MenuType,
   ) -> CustomMenuItem {
     let title = to_gtk_mnemonic(&title);
-    let gtk_item = if selected {
+    let gtk_item = if selectable || selected {
       let item = CheckMenuItem::with_mnemonic(&title);
-      item.set_active(true);
+      if selected {
+        item.set_active(selected);
+      }
       item.upcast::<GtkMenuItem>()
     } else {
       GtkMenuItem::with_mnemonic(&title)
